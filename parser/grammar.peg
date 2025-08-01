@@ -188,44 +188,6 @@ MemberOp <- "." _ i:Ident {
     }, nil
 }
 
-// todo: Generalize callee to allow more than Ident
-// If you’re later supporting foo.bar() or (fn)(1), change callee:Ident to callee:Primary or PostfixExpr, e.g.:
-//    CallExpr <- callee:Primary "(" args:ExpressionList? ")" {
-// This allows more expressive calls like:
-//    (foo.bar)(5)
-//    (print)(1)
-
-CallExpr <- callee:Ident _ "(" _ args:ExpressionList? _ ")" {
-    var exprs []ast.Expr
-    if args != nil {
-        exprs = args.([]ast.Expr)
-    } else {
-        exprs = []ast.Expr{}
-    }
-
-    return &ast.CallExpr{
-        Callee: callee.(ast.Expr),
-        Args:   exprs,
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
-    }, nil
-}
-
-IndexExpr <- target:Primary _ "[" _ index:Expression _ "]" {
-    return &ast.IndexExpr{
-        Target: target.(ast.Expr),
-        Index:  index.(ast.Expr),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
-    }, nil
-}
-
-MemberExpr <- obj:Primary _ "." _ ident:Ident {
-    return &ast.MemberExpr{
-        Object: obj.(ast.Expr),
-        Name:   ident.(*ast.Ident),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
-    }, nil
-}
-
 ExpressionList <- first:Expression rest:(_ "," _ expr:Expression)* {
     list := []ast.Expr{first.(ast.Expr)}
     for _, item := range rest.([]interface{}) {
@@ -304,8 +266,3 @@ Comment <- BlockComment / LineComment
 BlockComment <- "/*" ( !"*/" . )* "*/"
 
 LineComment <- "//" [^\n\r]* ( "\n" / "\r\n" / "\r" / EOF )
-
-// Legacy rules (kept for compatibility)
-DIGIT <- [0-9]
-LETTER <- [A-Z]
-SP <- [ \t]+

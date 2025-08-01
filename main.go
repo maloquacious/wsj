@@ -4,8 +4,10 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/maloquacious/semver"
@@ -14,34 +16,89 @@ import (
 )
 
 var (
-	version = semver.Version{Minor: 2, PreRelease: "alpha", Build: semver.Commit()}
+	debug   = false
+	version = semver.Version{Minor: 3, PreRelease: "alpha", Build: semver.Commit()}
 )
 
 func main() {
-	input := `
-	// This is a line comment
-	let x = 5; /* inline comment */
-	
-	/* Multi-line
-	   block comment */
-	print(x);
-	`
+	var (
+		showVersion   = flag.Bool("version", false, "show version and exit")
+		showBuildInfo = flag.Bool("build-info", false, "show build information and exit")
+		debugFlag     = flag.Bool("debug", false, "enable debug mode")
+	)
 
+	flag.Parse()
+
+	// Handle flags that exit immediately
+	if *showVersion {
+		fmt.Println(version.Short())
+		return
+	}
+
+	if *showBuildInfo {
+		fmt.Println(version.String())
+		return
+	}
+
+	// Update global debug variable
+	if *debugFlag {
+		debug = true
+	}
+
+	args := flag.Args()
+
+	// Handle different execution modes
+	if len(args) == 0 {
+		// REPL mode (not implemented yet)
+		fmt.Fprintf(os.Stderr, "REPL mode will be implemented soon\n")
+		os.Exit(1)
+	} else if len(args) == 1 && strings.HasSuffix(args[0], ".wsj") {
+		// Execute as a script file
+		if err := runScriptFile(args[0]); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+	}
+
+	// default to evaluating the arguments as program
+	program := strings.Join(args, " ")
+	if err := runProgram(program); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func runScriptFile(filename string) error {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return fmt.Errorf("failed to read file %q: %w", filename, err)
+	}
+
+	return runProgram(string(data))
+}
+
+func runProgram(input string) error {
 	result, err := parser.Parse("", []byte(input))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "parse error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("parse error: %w", err)
 	}
 
 	prog, ok := result.(*ast.Program)
 	if !ok {
-		fmt.Fprintf(os.Stderr, "unexpected AST type: %T\n", result)
-		os.Exit(1)
+		return fmt.Errorf("unexpected AST type: %T", result)
 	}
-	spew.Dump(prog)
 
-	fmt.Println("Parse successful!")
-	for i, stmt := range prog.Statements {
-		fmt.Printf("Statement %d: %#v\n", i+1, stmt)
+	if debug {
+		spew.Dump(prog)
+		fmt.Println("Parse successful!")
+		for i, stmt := range prog.Statements {
+			fmt.Printf("Statement %d: %#v\n", i+1, stmt)
+		}
 	}
+
+	// TODO: Execute the program using the VM
+	// For now, just indicate successful parsing
+	fmt.Println("Program parsed successfully")
+
+	return nil
 }
