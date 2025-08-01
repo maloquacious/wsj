@@ -19,6 +19,8 @@ The syntax for this DSL (domain specific language) is based on a subset of Javas
     │
     ├── testdata/            # Data for testing the application
     │
+    ├── tmp/                 # Temporary files; used by Amp agent when experimenting
+    │
     ├── tools/               # Development scripts and tools
     │   └── ... (dev tools, bash scripts, etc.)
     │

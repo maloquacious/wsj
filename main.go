@@ -14,11 +14,18 @@ import (
 )
 
 var (
-	version = semver.Version{Minor: 1, PreRelease: "alpha", Build: semver.Commit()}
+	version = semver.Version{Minor: 2, PreRelease: "alpha", Build: semver.Commit()}
 )
 
 func main() {
-	input := `print(5);`
+	input := `
+	// This is a line comment
+	let x = 5; /* inline comment */
+	
+	/* Multi-line
+	   block comment */
+	print(x);
+	`
 
 	result, err := parser.Parse("", []byte(input))
 	if err != nil {

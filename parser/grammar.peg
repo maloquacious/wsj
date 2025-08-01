@@ -21,18 +21,18 @@ import (
 
 }
 
-Program <- stmts:Statement* EOF {
+Program <- _ stmts:Statement* EOF {
     return &ast.Program{
         Statements: coerceStatementList(stmts),
         Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
     }, nil
 }
 
-Statement <- s:LetStmt { return s, nil }
-          / s:AssignStmt { return s, nil }
-          / s:ExprStmt { return s, nil }
+Statement <- s:LetStmt _ { return s, nil }
+          / s:AssignStmt _ { return s, nil }
+          / s:ExprStmt _ { return s, nil }
 
-LetStmt <- "let" name:Ident "=" value:Expression ";" {
+LetStmt <- "let" _ name:Ident _ "=" _ value:Expression _ ";" {
     return &ast.LetStmt{
         Name: name.(*ast.Ident),
         Value: value.(ast.Expr),
@@ -40,7 +40,7 @@ LetStmt <- "let" name:Ident "=" value:Expression ";" {
     }, nil
 }
 
-AssignStmt <- target:Target "=" value:Expression ";" {
+AssignStmt <- target:Target _ "=" _ value:Expression _ ";" {
     return &ast.AssignStmt{
         Target: target.(ast.Expr),
         Value:  value.(ast.Expr),
@@ -48,33 +48,33 @@ AssignStmt <- target:Target "=" value:Expression ";" {
     }, nil
 }
 
-Target <- base:Ident suffix:("." Ident / "[" Expression "]")? {
+Target <- base:Ident suffix:(_ "." _ Ident / _ "[" _ Expression _ "]")? {
     b := base.(*ast.Ident)
     if suffix == nil {
         return b, nil
     }
 
     pair := suffix.([]interface{})
-    switch pair[0] {
+    switch pair[1] { // Skip leading whitespace
     case ".":
         return &ast.MemberExpr{
             Object: b,
-            Name:   pair[1].(*ast.Ident),
+            Name:   pair[3].(*ast.Ident), // Skip whitespace around dot
             Pos:    b.Position(), // or use c.Pos
         }, nil
     case "[":
         return &ast.IndexExpr{
             Target: b,
-            Index:  pair[1].(ast.Expr),
+            Index:  pair[3].(ast.Expr), // Skip whitespace and bracket
             Pos:    b.Position(), // or use c.Pos
         }, nil
     default:
-        return nil, fmt.Errorf("unexpected suffix operator %v", pair[0])
+        return nil, fmt.Errorf("unexpected suffix operator %v", pair[1])
     }
 }
 
 
-ExprStmt <- e:Expression ";" {
+ExprStmt <- e:Expression _ ";" {
     startOfExpression := e.(ast.Expr).Position()
     return &ast.ExprStmt{
         Expr: e.(ast.Expr),
@@ -86,35 +86,34 @@ Expression <- eq:Equality {
     return eq, nil
 }
 
-Equality <- left:Comparison rest:(( "==" / "!=" ) right:Comparison)? {
+Equality <- left:Comparison rest:(( _ "==" _ / _ "!=" _ ) right:Comparison)? {
     base := left.(ast.Expr)
     if rest == nil {
         return base, nil
     }
 
-    for _, pair := range rest.([]interface{}) {
-        opPair := pair.([]interface{})
-        op := opPair[0].(string)
-        right := opPair[1].(ast.Expr)
+    pair := rest.([]interface{})
+    opPair := pair[0].([]interface{})
+    op := opPair[1].(string) // Skip leading whitespace
+    right := pair[1].(ast.Expr)
 
-        base = &ast.BinaryExpr{
-            Left:     base,
-            Operator: op,
-            Right:    right,
-            Pos:      base.Position(), // or use op position if needed
-        }
-    }
-    return base, nil
+    return &ast.BinaryExpr{
+        Left:     base,
+        Operator: op,
+        Right:    right,
+        Pos:      base.Position(), // or use op position if needed
+    }, nil
 }
 
-Comparison <- left:Term rest:((">" / "<" / ">=" / "<=") right:Term)? {
+Comparison <- left:Term rest:((_ ">" _ / _ "<" _ / _ ">=" _ / _ "<=" _) right:Term)? {
     l := left.(ast.Expr)
     if rest == nil {
         return l, nil
     }
 
     pair := rest.([]interface{})
-    op := pair[0].(string)
+    opPair := pair[0].([]interface{})
+    op := opPair[1].(string) // Skip leading whitespace
     r := pair[1].(ast.Expr)
 
     return &ast.BinaryExpr{
@@ -125,15 +124,15 @@ Comparison <- left:Term rest:((">" / "<" / ">=" / "<=") right:Term)? {
     }, nil
 }
 
-Term <- left:Factor rest:(("+" / "-") right:Factor)* {
+Term <- left:Factor rest:((_ "+" _ / _ "-" _) right:Factor)* {
     return foldLeftBinary(left, rest.([]interface{}))
 }
 
-Factor <- left:Unary rest:(("*" / "/" / "%") right:Unary)* {
+Factor <- left:Unary rest:((_ "*" _ / _ "/" _ / _ "%" _) right:Unary)* {
     return foldLeftBinary(left, rest.([]interface{}))
 }
 
-Unary <- op:("-" / "!")? expr:PostfixExpr {
+Unary <- op:("-" / "!")? _ expr:PostfixExpr {
     e := expr.(ast.Expr)
 
     if op == nil {
@@ -151,7 +150,7 @@ Primary <- l:Literal {
     return l, nil
 } / i:Ident {
     return i, nil
-} / "(" e:Expression ")" {
+} / "(" _ e:Expression _ ")" {
     return e, nil
 }
 
@@ -168,21 +167,21 @@ PostfixOp <- cs:CallOp {
     return ms, nil
 }
 
-CallOp <- "(" el:ExpressionList? ")" {
+CallOp <- "(" _ el:ExpressionList? _ ")" {
     return &ast.CallSuffix{
         Args: coerceExprList(el),
         Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
     }, nil
 }
 
-IndexOp <- "[" e:Expression "]" {
+IndexOp <- "[" _ e:Expression _ "]" {
     return &ast.IndexSuffix{
         Index: e.(ast.Expr),
         Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
     }, nil
 }
 
-MemberOp <- "." i:Ident {
+MemberOp <- "." _ i:Ident {
     return &ast.MemberSuffix{
         Name: i.(*ast.Ident),
         Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
@@ -196,7 +195,7 @@ MemberOp <- "." i:Ident {
 //    (foo.bar)(5)
 //    (print)(1)
 
-CallExpr <- callee:Ident "(" args:ExpressionList? ")" {
+CallExpr <- callee:Ident _ "(" _ args:ExpressionList? _ ")" {
     var exprs []ast.Expr
     if args != nil {
         exprs = args.([]ast.Expr)
@@ -211,7 +210,7 @@ CallExpr <- callee:Ident "(" args:ExpressionList? ")" {
     }, nil
 }
 
-IndexExpr <- target:Primary "[" index:Expression "]" {
+IndexExpr <- target:Primary _ "[" _ index:Expression _ "]" {
     return &ast.IndexExpr{
         Target: target.(ast.Expr),
         Index:  index.(ast.Expr),
@@ -219,7 +218,7 @@ IndexExpr <- target:Primary "[" index:Expression "]" {
     }, nil
 }
 
-MemberExpr <- obj:Primary "." ident:Ident {
+MemberExpr <- obj:Primary _ "." _ ident:Ident {
     return &ast.MemberExpr{
         Object: obj.(ast.Expr),
         Name:   ident.(*ast.Ident),
@@ -227,11 +226,11 @@ MemberExpr <- obj:Primary "." ident:Ident {
     }, nil
 }
 
-ExpressionList <- first:Expression rest:("," expr:Expression)* {
+ExpressionList <- first:Expression rest:(_ "," _ expr:Expression)* {
     list := []ast.Expr{first.(ast.Expr)}
     for _, item := range rest.([]interface{}) {
         pair := item.([]interface{})
-        expr := pair[1].(ast.Expr) // skip comma
+        expr := pair[3].(ast.Expr) // skip whitespace, comma, whitespace
         list = append(list, expr)
     }
     return list, nil
@@ -296,7 +295,17 @@ String <- "\"" ( [^"\\] / "\\" . )* "\"" {
 }
 
 EOF <- !.
+
+// Whitespace and Comments
+_ <- ( [ \t\n\r] / Comment )*
+
+Comment <- BlockComment / LineComment
+
+BlockComment <- "/*" ( !"*/" . )* "*/"
+
+LineComment <- "//" [^\n\r]* ( "\n" / "\r\n" / "\r" / EOF )
+
+// Legacy rules (kept for compatibility)
 DIGIT <- [0-9]
 LETTER <- [A-Z]
 SP <- [ \t]+
-_ <- [ \t]*

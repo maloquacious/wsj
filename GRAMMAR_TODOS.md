@@ -4,7 +4,7 @@
 
 - [ ] **Remove dead code**: Delete unused rules CallExpr, IndexExpr, MemberExpr (lines 199-228)
 - [ ] **Fix unreachable code**: Remove dead return statement on line 261 in null literal case  
-- [ ] **Add systematic whitespace handling** between tokens (top priority when implementing comments)
+- [x] **Add systematic whitespace handling** between tokens (top priority when implementing comments)
 
 ## Medium Priority
 
