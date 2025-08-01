@@ -8,4 +8,6 @@
 .vscode/
 go.work
 go.work.sum
+dist/
+testdata/
 tmp/
