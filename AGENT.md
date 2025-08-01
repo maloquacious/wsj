@@ -2,6 +2,7 @@
 
 ## Purpose
 This is the repository for `wsj`, a scripting tool for Worldographer.
+The syntax for this DSL (domain specific language) is based on a subset of Javascript and is specific to Worldographer's data structures.
 
 ## Project Structure
     project-root/
@@ -36,6 +37,7 @@ This is the repository for `wsj`, a scripting tool for Worldographer.
 
 ## Commands
 * WSJ runner: `go build -o dist/local/wsj`
+* Generate parser: `pigeon -o parser/grammar.go parser/grammar.peg`
 
 ## Code Style
 - Standard Go formatting using `gofmt`
@@ -44,3 +46,7 @@ This is the repository for `wsj`, a scripting tool for Worldographer.
 - Function comments use Go standard format `// FunctionName does X`
 - Variable naming follows camelCase
 - File structure follows standard Go package conventions
+
+## Packages
+* github.com/maloquacious/wxx: read and write Worldographer files.
+* github.com/maloquacious/hexg: working with coordinates in the files.
