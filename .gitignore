@@ -1,0 +1,11 @@
+*~
+*.exe
+*.swp
+*.xml
+*.wxx
+.DS_Store
+.idea/
+.vscode/
+go.work
+go.work.sum
+tmp/
