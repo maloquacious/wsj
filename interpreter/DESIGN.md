@@ -27,9 +27,9 @@ The `globals` map serves as the primary symbol table, storing:
 
 ```go
 // Example after user executes:
-// a := load("region1.wxx")
-// b := load("region2.wxx") 
-// playerName := "Aragorn"
+// let a = load("region1.wxx");
+// let b = load("region2.wxx");
+// let playerName = "Aragorn";
 globals = map[string]interface{}{
     "a":          *wxx.Map,    // Loaded Worldographer map
     "b":          *wxx.Map,    // Second map for comparison/merging
@@ -139,12 +139,12 @@ Worldographer-specific functions available to WSJ programs:
 
 | Function | Purpose | Example |
 |----------|---------|---------|
-| `load(filename)` | Load .wxx map file | `map := load("dungeon.wxx")` |
+| `load(filename)` | Load .wxx map file | `map = load("dungeon.wxx")` |
 | `save(map, filename)` | Save map to file | `save(map, "updated.wxx")` |
 | `print(...)` | Output to console | `print("Processing hex", x, y)` |
-| `getHex(map, x, y)` | Get hex at coordinates | `hex := getHex(map, 5, 10)` |
+| `getHex(map, x, y)` | Get hex at coordinates | `hex = getHex(map, 5, 10)` |
 | `setHex(map, x, y, terrain)` | Set hex terrain | `setHex(map, 5, 10, "forest")` |
-| `distance(x1, y1, x2, y2)` | Hex distance | `d := distance(0, 0, 3, 4)` |
+| `distance(x1, y1, x2, y2)` | Hex distance | `d = distance(0, 0, 3, 4)` |
 
 ### Error Handling
 
@@ -208,6 +208,6 @@ type Interpreter struct {
 - Multi-map operations
 
 ### Test Data
-- Sample .wxx files in `testdata/`
+- Sample .wxx files in `testdata/input/`
 - Expected output for various WSJ programs
 - Error case validation
