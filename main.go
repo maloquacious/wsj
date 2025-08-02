@@ -14,10 +14,11 @@ import (
 	"github.com/maloquacious/semver"
 	"github.com/maloquacious/wsj/ast"
 	"github.com/maloquacious/wsj/parser"
+	"github.com/maloquacious/wsj/vm"
 )
 
 var (
-	version = semver.Version{Minor: 5, PreRelease: "alpha", Build: semver.Commit()}
+	version = semver.Version{Minor: 6, PreRelease: "alpha", Build: semver.Commit()}
 )
 
 func main() {
@@ -45,9 +46,11 @@ func main() {
 	// Handle different execution modes
 	switch {
 	case len(args) == 0:
-		// REPL mode (not implemented yet)
-		fmt.Fprintf(os.Stderr, "REPL mode will be implemented soon\n")
-		os.Exit(1)
+		// REPL mode
+		if err := runREPL(*debugFlag); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
 
 	case len(args) == 1 && strings.HasSuffix(args[0], ".wsj"):
 		// Execute as a script file
@@ -59,7 +62,7 @@ func main() {
 	default:
 		// Evaluate the arguments as program
 		program := strings.Join(args, " ")
-		if err := runProgram(program, *debugFlag); err != nil {
+		if err := runProgram(nil, program, *debugFlag); err != nil {
 			fmt.Fprintf(os.Stderr, "error: %v\n", err)
 			os.Exit(1)
 		}
@@ -78,10 +81,10 @@ func runScriptFile(filename string, debug bool) error {
 	}
 
 	input := string(data)
-	return runProgram(input, debug)
+	return runProgram(nil, input, debug)
 }
 
-func runProgram(input string, debug bool) error {
+func runProgram(wvm *vm.VM, input string, debug bool) error {
 	result, err := parser.Parse("", []byte(input))
 	if err != nil {
 		return fmt.Errorf("parse error: %w", err)
