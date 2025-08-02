@@ -4,6 +4,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"os"
@@ -17,7 +18,7 @@ import (
 
 var (
 	debug   = false
-	version = semver.Version{Minor: 3, PreRelease: "alpha", Build: semver.Commit()}
+	version = semver.Version{Minor: 4, PreRelease: "alpha", Build: semver.Commit()}
 )
 
 func main() {
@@ -48,23 +49,26 @@ func main() {
 	args := flag.Args()
 
 	// Handle different execution modes
-	if len(args) == 0 {
+	switch {
+	case len(args) == 0:
 		// REPL mode (not implemented yet)
 		fmt.Fprintf(os.Stderr, "REPL mode will be implemented soon\n")
 		os.Exit(1)
-	} else if len(args) == 1 && strings.HasSuffix(args[0], ".wsj") {
+
+	case len(args) == 1 && strings.HasSuffix(args[0], ".wsj"):
 		// Execute as a script file
 		if err := runScriptFile(args[0]); err != nil {
 			fmt.Fprintf(os.Stderr, "error: %v\n", err)
 			os.Exit(1)
 		}
-	}
 
-	// default to evaluating the arguments as program
-	program := strings.Join(args, " ")
-	if err := runProgram(program); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
+	default:
+		// Evaluate the arguments as program
+		program := strings.Join(args, " ")
+		if err := runProgram(program); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
 	}
 }
 
@@ -72,6 +76,11 @@ func runScriptFile(filename string) error {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return fmt.Errorf("failed to read file %q: %w", filename, err)
+	}
+
+	// Handle shebang lines by converting "#!" to "//" to preserve line numbers
+	if bytes.HasPrefix(data, []byte{'#', '!'}) {
+		data[0], data[1] = '/', '/'
 	}
 
 	return runProgram(string(data))
