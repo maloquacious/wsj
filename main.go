@@ -17,8 +17,7 @@ import (
 )
 
 var (
-	debug   = false
-	version = semver.Version{Minor: 4, PreRelease: "alpha", Build: semver.Commit()}
+	version = semver.Version{Minor: 5, PreRelease: "alpha", Build: semver.Commit()}
 )
 
 func main() {
@@ -41,11 +40,6 @@ func main() {
 		return
 	}
 
-	// Update global debug variable
-	if *debugFlag {
-		debug = true
-	}
-
 	args := flag.Args()
 
 	// Handle different execution modes
@@ -57,7 +51,7 @@ func main() {
 
 	case len(args) == 1 && strings.HasSuffix(args[0], ".wsj"):
 		// Execute as a script file
-		if err := runScriptFile(args[0]); err != nil {
+		if err := runScriptFile(args[0], *debugFlag); err != nil {
 			fmt.Fprintf(os.Stderr, "error: %v\n", err)
 			os.Exit(1)
 		}
@@ -65,14 +59,14 @@ func main() {
 	default:
 		// Evaluate the arguments as program
 		program := strings.Join(args, " ")
-		if err := runProgram(program); err != nil {
+		if err := runProgram(program, *debugFlag); err != nil {
 			fmt.Fprintf(os.Stderr, "error: %v\n", err)
 			os.Exit(1)
 		}
 	}
 }
 
-func runScriptFile(filename string) error {
+func runScriptFile(filename string, debug bool) error {
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return fmt.Errorf("failed to read file %q: %w", filename, err)
@@ -83,10 +77,11 @@ func runScriptFile(filename string) error {
 		data[0], data[1] = '/', '/'
 	}
 
-	return runProgram(string(data))
+	input := string(data)
+	return runProgram(input, debug)
 }
 
-func runProgram(input string) error {
+func runProgram(input string, debug bool) error {
 	result, err := parser.Parse("", []byte(input))
 	if err != nil {
 		return fmt.Errorf("parse error: %w", err)
