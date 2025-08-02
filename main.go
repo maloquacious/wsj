@@ -14,11 +14,11 @@ import (
 	"github.com/maloquacious/semver"
 	"github.com/maloquacious/wsj/ast"
 	"github.com/maloquacious/wsj/parser"
-	"github.com/maloquacious/wsj/vm"
+	"github.com/maloquacious/wsj/interpreter"
 )
 
 var (
-	version = semver.Version{Minor: 6, Patch: 1, PreRelease: "alpha", Build: semver.Commit()}
+	version = semver.Version{Minor: 7, PreRelease: "alpha", Build: semver.Commit()}
 )
 
 func main() {
@@ -84,7 +84,7 @@ func runScriptFile(filename string, debug bool) error {
 	return runProgram(nil, input, debug)
 }
 
-func runProgram(wvm *vm.VM, input string, debug bool) error {
+func runProgram(interp *interpreter.Interpreter, input string, debug bool) error {
 	result, err := parser.Parse("", []byte(input))
 	if err != nil {
 		return fmt.Errorf("parse error: %w", err)
@@ -103,7 +103,7 @@ func runProgram(wvm *vm.VM, input string, debug bool) error {
 		}
 	}
 
-	// TODO: Execute the program using the VM
+	// TODO: Execute the program using the interpreter
 	// For now, just indicate successful parsing
 	fmt.Println("Program parsed successfully")
 

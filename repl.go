@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/chzyer/readline"
-	"github.com/maloquacious/wsj/vm"
+	"github.com/maloquacious/wsj/interpreter"
 )
 
 type replEnv struct {
@@ -36,7 +36,7 @@ func runREPL(debug bool) error {
 	rl.CaptureExitSignal()
 	log.SetOutput(rl.Stderr())
 
-	wvm, err := vm.New()
+	interp, err := interpreter.New()
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func runREPL(debug bool) error {
 		if strings.TrimSpace(line) == "" {
 			continue
 		} else if strings.HasPrefix(strings.TrimSpace(line), "$") {
-			handleReplCommand(wvm, renv, strings.TrimSpace(line))
+			handleReplCommand(interp, renv, strings.TrimSpace(line))
 			continue
 		}
 
@@ -71,7 +71,7 @@ func runREPL(debug bool) error {
 			// Change prompt back to single line
 			rl.SetPrompt("> ")
 
-			runProgram(wvm, input, renv.debug)
+			runProgram(interp, input, renv.debug)
 		} else {
 			rl.SetPrompt(". ")
 		}
@@ -91,7 +91,7 @@ func blockComplete(lines []string) bool {
 	return close >= open
 }
 
-func handleReplCommand(wvm *vm.VM, env *replEnv, line string) {
+func handleReplCommand(interp *interpreter.Interpreter, env *replEnv, line string) {
 	// drop any leading spaces and the '$' that signifies repl commands
 	line = strings.TrimPrefix(strings.TrimSpace(line), "$")
 	args := strings.Fields(line)

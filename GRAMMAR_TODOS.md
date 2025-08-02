@@ -2,8 +2,8 @@
 
 ## High Priority
 
-- [ ] **Remove dead code**: Delete unused rules CallExpr, IndexExpr, MemberExpr (lines 199-228)
-- [ ] **Fix unreachable code**: Remove dead return statement on line 261 in null literal case  
+- [x] **Remove dead code**: Delete unused rules CallExpr, IndexExpr, MemberExpr (lines 199-228)
+- [x] **Fix unreachable code**: Remove dead return statement on line 261 in null literal case  
 - [x] **Add systematic whitespace handling** between tokens (top priority when implementing comments)
 
 ## Medium Priority
@@ -15,7 +15,7 @@
 
 - [ ] **Improve string literal parsing** for proper escape sequence handling (will address with template literals)
 - [ ] **Enhance reserved keyword handling**: Prevent keywords in broader contexts beyond Ident rule
-- [ ] **Remove or implement generalization comment** on line 192 for CallExpr callee
+- [x] **Remove or implement generalization comment** on line 192 for CallExpr callee
 
 ## Notes
 
