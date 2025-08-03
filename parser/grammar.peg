@@ -35,6 +35,8 @@ Program <- _ stmts:Statement* EOF {
 
 Statement <- s:IfStmt _ { return s, nil }
           / s:ForStmt _ { return s, nil }
+          / s:ContinueStmt _ { return s, nil }
+          / s:BreakStmt _ { return s, nil }
           / s:LetStmt _ { return s, nil }
           / s:AssignStmt _ { return s, nil }
           / s:BlockStmt _ { return s, nil }
@@ -111,6 +113,18 @@ ForUpdateStmt <- target:PostfixExpr _ "=" _ value:Expression {
              / expr:Expression {
     return &ast.ExprStmt{
         Expr: expr.(ast.Expr),
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+    }, nil
+}
+
+ContinueStmt <- "continue" _ ";" {
+    return &ast.ContinueStmt{
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+    }, nil
+}
+
+BreakStmt <- "break" _ ";" {
+    return &ast.BreakStmt{
         Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
     }, nil
 }
@@ -319,7 +333,7 @@ Int <- [0-9]+ {
 Ident  <- [a-zA-Z] [a-zA-Z0-9_]* {
     text := string(c.text)
     switch text {
-    case "let", "if", "else", "for", "true", "false", "null":
+    case "let", "if", "else", "for", "continue", "break", "true", "false", "null":
         return nil, fmt.Errorf("reserved keyword %q cannot be used as identifier", text)
     }
     return &ast.Ident{

@@ -6,7 +6,7 @@
 - [x] **If statements**: `if (condition) { ... } else { ... }` - COMPLETED
 - [x] **For loops**: `for (init; condition; update) { ... }` - COMPLETED
 - [x] **Block statements**: `{ statement1; statement2; }` - COMPLETED
-- [ ] **Continue and Break statements**: `continue;` and `break;`
+- [x] **Continue and Break statements**: `continue;` and `break;` - COMPLETED
 
 ### Template Literals (Deferred - Not Needed This Sprint)
 - [ ] **Template literals**: `` `Error: ${variable}` `` with expression interpolation (removed from mvp_001.wsj)

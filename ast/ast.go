@@ -69,6 +69,18 @@ type ForStmt struct {
 
 func (s *ForStmt) Position() Pos { return s.Pos }
 
+type ContinueStmt struct {
+	Pos Pos
+}
+
+func (s *ContinueStmt) Position() Pos { return s.Pos }
+
+type BreakStmt struct {
+	Pos Pos
+}
+
+func (s *BreakStmt) Position() Pos { return s.Pos }
+
 type Expr interface {
 	Position() Pos // or any method that lets you identify this as an Expr
 }
