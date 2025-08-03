@@ -217,6 +217,9 @@ LogicalAnd <- left:Equality rest:(( _ "&&" _ ) right:Equality)* {
     return base, nil
 }
 
+// Equality and Comparison operators use '?' (single operation) rather than '*' (chaining)
+// to prevent ambiguous expressions like "a == b == c". Users must use parentheses
+// to explicitly specify the intended grouping: "a == (b == c)" or "(a == b) == c"
 Equality <- left:Comparison rest:(( _ "==" _ / _ "!=" _ ) right:Comparison)? {
     base := left.(ast.Expr)
     if rest == nil {

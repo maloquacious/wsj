@@ -14,12 +14,13 @@
 ## Medium Priority
 
 - [x] **Add boolean operators**: Implement `&&` (logical AND) and `||` (logical OR) operators for compound conditions - COMPLETED
-- [ ] **Make operator precedence consistent**: Update Comparison rule to handle left-associative sequences like Term and Factor
+- [x] **Make operator precedence consistent**: Equality and Comparison operators intentionally use '?' (no chaining) to avoid ambiguous expressions - COMPLETED
 - [x] **Standardize position tracking**: Use consistent approach for c.pos vs expression positions - COMPLETED
 - [ ] **Improve parser error messages**: Replace cryptic pigeon-generated errors with user-friendly messages (implement after interpreter is complete)
 
 ## Low Priority
 
+- [ ] **Implement const keyword**: Add `const` declarations for immutable variables (not part of MVP)
 - [ ] **Template literals**: `` `Error: ${variable}` `` with expression interpolation (removed from mvp_001.wsj)
 - [ ] **Improve string literal parsing** for proper escape sequence handling (will address with template literals)
 - [ ] **Enhance reserved keyword handling**: Prevent keywords in broader contexts beyond Ident rule
