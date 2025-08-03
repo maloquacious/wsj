@@ -59,6 +59,16 @@ type IfStmt struct {
 
 func (s *IfStmt) Position() Pos { return s.Pos }
 
+type ForStmt struct {
+	Init      Stmt // initialization statement (could be LetStmt, AssignStmt, or ExprStmt)
+	Condition Expr // loop condition
+	Update    Stmt // update statement (usually AssignStmt or ExprStmt)
+	Body      Stmt // loop body (usually BlockStmt)
+	Pos       Pos
+}
+
+func (s *ForStmt) Position() Pos { return s.Pos }
+
 type Expr interface {
 	Position() Pos // or any method that lets you identify this as an Expr
 }

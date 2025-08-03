@@ -4,9 +4,9 @@
 
 ### Control Flow Statements (Required for mvp_001.wsj)
 - [x] **If statements**: `if (condition) { ... } else { ... }` - COMPLETED
-- [ ] **For loops**: `for (init; condition; update) { ... }`
+- [x] **For loops**: `for (init; condition; update) { ... }` - COMPLETED
 - [x] **Block statements**: `{ statement1; statement2; }` - COMPLETED
-- [ ] **Continue statement**: `continue;`
+- [ ] **Continue and Break statements**: `continue;` and `break;`
 
 ### Template Literals (Deferred - Not Needed This Sprint)
 - [ ] **Template literals**: `` `Error: ${variable}` `` with expression interpolation (removed from mvp_001.wsj)

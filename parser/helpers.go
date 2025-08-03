@@ -60,7 +60,10 @@ func foldLeftBinary(left any, rest []interface{}) (ast.Expr, error) {
 
 	for _, part := range rest {
 		pair := part.([]interface{})
-		op := pair[0].(string)
+		// pair[0] is the operator match (like (_ "+" _)), pair[1] is the right operand
+		opMatch := pair[0].([]interface{})
+		// opMatch[1] is the actual operator string (surrounded by whitespace)
+		op := string(opMatch[1].([]byte))
 		right := pair[1].(ast.Expr)
 
 		result = &ast.BinaryExpr{

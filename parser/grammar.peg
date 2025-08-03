@@ -34,6 +34,7 @@ Program <- _ stmts:Statement* EOF {
 }
 
 Statement <- s:IfStmt _ { return s, nil }
+          / s:ForStmt _ { return s, nil }
           / s:LetStmt _ { return s, nil }
           / s:AssignStmt _ { return s, nil }
           / s:BlockStmt _ { return s, nil }
@@ -47,7 +48,7 @@ LetStmt <- "let" _ name:Ident _ "=" _ value:Expression _ ";" {
     }, nil
 }
 
-AssignStmt <- target:Target _ "=" _ value:Expression _ ";" {
+AssignStmt <- target:PostfixExpr _ "=" _ value:Expression _ ";" {
     return &ast.AssignStmt{
         Target: target.(ast.Expr),
         Value:  value.(ast.Expr),
@@ -69,6 +70,51 @@ IfStmt <- "if" _ "(" _ condition:Expression _ ")" _ thenStmt:Statement elseClaus
     }, nil
 }
 
+ForStmt <- "for" _ "(" _ init:ForInitStmt _ ";" _ condition:Expression _ ";" _ update:ForUpdateStmt _ ")" _ body:Statement {
+    return &ast.ForStmt{
+        Init:      init.(ast.Stmt),
+        Condition: condition.(ast.Expr),
+        Update:    update.(ast.Stmt),
+        Body:      body.(ast.Stmt),
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+    }, nil
+}
+
+ForInitStmt <- "let" _ name:Ident _ "=" _ value:Expression {
+    return &ast.LetStmt{
+        Name: name.(*ast.Ident),
+        Value: value.(ast.Expr),
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+    }, nil
+}
+            / target:PostfixExpr _ "=" _ value:Expression {
+    return &ast.AssignStmt{
+        Target: target.(ast.Expr),
+        Value:  value.(ast.Expr),
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+    }, nil
+}
+            / expr:Expression {
+    return &ast.ExprStmt{
+        Expr: expr.(ast.Expr),
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+    }, nil
+}
+
+ForUpdateStmt <- target:PostfixExpr _ "=" _ value:Expression {
+    return &ast.AssignStmt{
+        Target: target.(ast.Expr),
+        Value:  value.(ast.Expr),
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+    }, nil
+}
+             / expr:Expression {
+    return &ast.ExprStmt{
+        Expr: expr.(ast.Expr),
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+    }, nil
+}
+
 BlockStmt <- "{" _ stmts:Statement* _ "}" {
     return &ast.BlockStmt{
         Statements: coerceStatementList(stmts),
@@ -83,7 +129,9 @@ Target <- base:Ident suffix:(_ "." _ Ident / _ "[" _ Expression _ "]")? {
     }
 
     pair := suffix.([]interface{})
-    switch pair[1] { // Skip leading whitespace
+    opBytes := pair[1].([]byte)
+    op := string(opBytes)
+    switch op { // Skip leading whitespace
     case ".":
         return &ast.MemberExpr{
             Object: b,
@@ -97,7 +145,7 @@ Target <- base:Ident suffix:(_ "." _ Ident / _ "[" _ Expression _ "]")? {
             Pos:    b.Position(), // or use c.Pos
         }, nil
     default:
-        return nil, fmt.Errorf("unexpected suffix operator %v", pair[1])
+        return nil, fmt.Errorf("unexpected suffix operator %v", op)
     }
 }
 
@@ -271,7 +319,7 @@ Int <- [0-9]+ {
 Ident  <- [a-zA-Z] [a-zA-Z0-9_]* {
     text := string(c.text)
     switch text {
-    case "let", "if", "else", "true", "false", "null":
+    case "let", "if", "else", "for", "true", "false", "null":
         return nil, fmt.Errorf("reserved keyword %q cannot be used as identifier", text)
     }
     return &ast.Ident{
