@@ -171,8 +171,50 @@ ExprStmt <- e:Expression _ ";" {
     }, nil
 }
 
-Expression <- eq:Equality {
-    return eq, nil
+Expression <- or:LogicalOr {
+    return or, nil
+}
+
+LogicalOr <- left:LogicalAnd rest:(( _ "||" _ ) right:LogicalAnd)* {
+    base := left.(ast.Expr)
+    if rest == nil {
+        return base, nil
+    }
+
+    restList := rest.([]interface{})
+    for _, item := range restList {
+        pair := item.([]interface{})
+        right := pair[1].(ast.Expr)
+        
+        base = &ast.BinaryExpr{
+            Left:     base,
+            Operator: "||",
+            Right:    right,
+            Pos:      base.Position(), // Position of left operand
+        }
+    }
+    return base, nil
+}
+
+LogicalAnd <- left:Equality rest:(( _ "&&" _ ) right:Equality)* {
+    base := left.(ast.Expr)
+    if rest == nil {
+        return base, nil
+    }
+
+    restList := rest.([]interface{})
+    for _, item := range restList {
+        pair := item.([]interface{})
+        right := pair[1].(ast.Expr)
+        
+        base = &ast.BinaryExpr{
+            Left:     base,
+            Operator: "&&",
+            Right:    right,
+            Pos:      base.Position(), // Position of left operand
+        }
+    }
+    return base, nil
 }
 
 Equality <- left:Comparison rest:(( _ "==" _ / _ "!=" _ ) right:Comparison)? {
