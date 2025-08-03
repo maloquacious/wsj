@@ -29,7 +29,7 @@ import (
 Program <- _ stmts:Statement* EOF {
     return &ast.Program{
         Statements: coerceStatementList(stmts),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Start of program
     }, nil
 }
 
@@ -46,7 +46,7 @@ LetStmt <- "let" _ name:Ident _ "=" _ value:Expression _ ";" {
     return &ast.LetStmt{
         Name: name.(*ast.Ident),
         Value: value.(ast.Expr),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of "let" keyword
     }, nil
 }
 
@@ -54,7 +54,7 @@ AssignStmt <- target:PostfixExpr _ "=" _ value:Expression _ ";" {
     return &ast.AssignStmt{
         Target: target.(ast.Expr),
         Value:  value.(ast.Expr),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: target.(ast.Expr).Position(), // Position of assignment target
     }, nil
 }
 
@@ -68,7 +68,7 @@ IfStmt <- "if" _ "(" _ condition:Expression _ ")" _ thenStmt:BlockStmt elseClaus
         Condition: condition.(ast.Expr),
         ThenStmt:  thenStmt.(ast.Stmt),
         ElseStmt:  elseStmt,
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of "if" keyword
     }, nil
 }
 
@@ -78,7 +78,7 @@ ForStmt <- "for" _ "(" _ init:ForInitStmt _ ";" _ condition:Expression _ ";" _ u
         Condition: condition.(ast.Expr),
         Update:    update.(ast.Stmt),
         Body:      body.(ast.Stmt),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of "for" keyword
     }, nil
 }
 
@@ -86,20 +86,20 @@ ForInitStmt <- "let" _ name:Ident _ "=" _ value:Expression {
     return &ast.LetStmt{
         Name: name.(*ast.Ident),
         Value: value.(ast.Expr),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of "let" keyword
     }, nil
 }
             / target:PostfixExpr _ "=" _ value:Expression {
     return &ast.AssignStmt{
         Target: target.(ast.Expr),
         Value:  value.(ast.Expr),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: target.(ast.Expr).Position(), // Position of assignment target
     }, nil
 }
             / expr:Expression {
     return &ast.ExprStmt{
         Expr: expr.(ast.Expr),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: expr.(ast.Expr).Position(), // Position of expression
     }, nil
 }
 
@@ -107,32 +107,32 @@ ForUpdateStmt <- target:PostfixExpr _ "=" _ value:Expression {
     return &ast.AssignStmt{
         Target: target.(ast.Expr),
         Value:  value.(ast.Expr),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: target.(ast.Expr).Position(), // Position of assignment target
     }, nil
 }
              / expr:Expression {
     return &ast.ExprStmt{
         Expr: expr.(ast.Expr),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: expr.(ast.Expr).Position(), // Position of expression
     }, nil
 }
 
 ContinueStmt <- "continue" _ ";" {
     return &ast.ContinueStmt{
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of "continue" keyword
     }, nil
 }
 
 BreakStmt <- "break" _ ";" {
     return &ast.BreakStmt{
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of "break" keyword
     }, nil
 }
 
 BlockStmt <- "{" _ stmts:Statement* _ "}" {
     return &ast.BlockStmt{
         Statements: coerceStatementList(stmts),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of opening brace
     }, nil
 }
 
@@ -150,13 +150,13 @@ Target <- base:Ident suffix:(_ "." _ Ident / _ "[" _ Expression _ "]")? {
         return &ast.MemberExpr{
             Object: b,
             Name:   pair[3].(*ast.Ident), // Skip whitespace around dot
-            Pos:    b.Position(), // or use c.Pos
+            Pos:    b.Position(), // Position of base object
         }, nil
     case "[":
         return &ast.IndexExpr{
             Target: b,
             Index:  pair[3].(ast.Expr), // Skip whitespace and bracket
-            Pos:    b.Position(), // or use c.Pos
+            Pos:    b.Position(), // Position of base target
         }, nil
     default:
         return nil, fmt.Errorf("unexpected suffix operator %v", op)
@@ -165,10 +165,9 @@ Target <- base:Ident suffix:(_ "." _ Ident / _ "[" _ Expression _ "]")? {
 
 
 ExprStmt <- e:Expression _ ";" {
-    startOfExpression := e.(ast.Expr).Position()
     return &ast.ExprStmt{
         Expr: e.(ast.Expr),
-        Pos: startOfExpression,
+        Pos: e.(ast.Expr).Position(), // Position of the expression
     }, nil
 }
 
@@ -191,7 +190,7 @@ Equality <- left:Comparison rest:(( _ "==" _ / _ "!=" _ ) right:Comparison)? {
         Left:     base,
         Operator: op,
         Right:    right,
-        Pos:      base.Position(), // or use op position if needed
+        Pos:      base.Position(), // Position of left operand
     }, nil
 }
 
@@ -210,7 +209,7 @@ Comparison <- left:Term rest:((_ ">=" _ / _ "<=" _ / _ ">" _ / _ "<" _) right:Te
         Left:     l,
         Operator: op,
         Right:    r,
-        Pos:      l.Position(),
+        Pos:      l.Position(), // Position of left operand
     }, nil
 }
 
@@ -232,7 +231,7 @@ Unary <- op:("-" / "!")? _ expr:PostfixExpr {
     return &ast.UnaryExpr{
         Operator: op.(string),
         Expr:     e,
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of operator
     }, nil
 }
 
@@ -260,21 +259,21 @@ PostfixOp <- cs:CallOp {
 CallOp <- "(" _ el:ExpressionList? _ ")" {
     return &ast.CallSuffix{
         Args: coerceExprList(el),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of opening parenthesis
     }, nil
 }
 
 IndexOp <- "[" _ e:Expression _ "]" {
     return &ast.IndexSuffix{
         Index: e.(ast.Expr),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of opening bracket
     }, nil
 }
 
 MemberOp <- "." _ i:Ident {
     return &ast.MemberSuffix{
         Name: i.(*ast.Ident),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of dot operator
     }, nil
 }
 
@@ -293,21 +292,21 @@ Literal <- nl:Number {
 } / s:String {
     return &ast.StringLiteral{
         Value: s.(string),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of string literal
     }, nil
 } / "true" {
     return &ast.BoolLiteral{
         Value: true,
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of "true" literal
     }, nil
 } / "false" {
     return &ast.BoolLiteral{
         Value: false,
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of "false" literal
     }, nil
 } / "null" {
     return &ast.NullLiteral{
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of "null" literal
     }, nil
     return nil, nil
 }
@@ -318,7 +317,7 @@ Float <- [0-9]+ "." [0-9]+ {
     f, err := strconv.ParseFloat(string(c.text), 64)
     return &ast.NumberLiteral{
         Value: f,
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of float literal
     }, err
 }
 
@@ -326,7 +325,7 @@ Int <- [0-9]+ {
     i, err := strconv.Atoi(string(c.text))
     return &ast.NumberLiteral{
         Value: int64(i),
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of int literal
     }, err
 }
 
@@ -338,7 +337,7 @@ Ident  <- [a-zA-Z] [a-zA-Z0-9_]* {
     }
     return &ast.Ident{
         Name: text,
-        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col}, // Position of identifier
     }, nil
 }
 
