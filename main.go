@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	version = semver.Version{Minor: 10, Patch: 5, PreRelease: "alpha", Build: semver.Commit()}
+	version = semver.Version{Minor: 11, Patch: 0, PreRelease: "alpha", Build: semver.Commit()}
 )
 
 func main() {
