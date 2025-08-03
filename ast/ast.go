@@ -43,6 +43,13 @@ type LetStmt struct {
 
 func (s *LetStmt) Position() Pos { return s.Pos }
 
+type BlockStmt struct {
+	Statements []Stmt
+	Pos        Pos
+}
+
+func (s *BlockStmt) Position() Pos { return s.Pos }
+
 type Expr interface {
 	Position() Pos // or any method that lets you identify this as an Expr
 }

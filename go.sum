@@ -8,7 +8,5 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/maloquacious/semver v0.3.0 h1:0KAEJkxpU+QBVg0li2dk6CubDYm7uGUxEga3eu/3w+E=
 github.com/maloquacious/semver v0.3.0/go.mod h1:0VQ90ipG1SLXCDcQo1bgYTBIpvXsEiNOnEF5Bs/HRYY=
-github.com/maloquacious/wxx v0.0.0-20250801181851-8e38872dc198 h1:N8UJahwtboDHfWsNa3B6pJPS83Gxmen4PLpgYYaApeI=
-github.com/maloquacious/wxx v0.0.0-20250801181851-8e38872dc198/go.mod h1:gtumhJdsE6AbI1dw4LdIBFBrPVkKDKXacke30ekbFcU=
 golang.org/x/sys v0.0.0-20220310020820-b874c991c1a5 h1:y/woIyUBFbpQGKS0u1aHF/40WUDnek3fPOyD08H5Vng=
 golang.org/x/sys v0.0.0-20220310020820-b874c991c1a5/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=

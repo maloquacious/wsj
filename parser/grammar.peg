@@ -19,6 +19,11 @@ import (
 	"github.com/maloquacious/wsj/ast"
 )
 
+// Note: Scripts are allowed to have a shebang ("#!") start their first line.
+// The script runner checks for the shebang; if present it is replaced with "//"
+// before the script is parsed. This is only allowed when running scripts from
+// the command line; it is not supported in the REPL or when parsing fragments.
+
 }
 
 Program <- _ stmts:Statement* EOF {
@@ -30,6 +35,7 @@ Program <- _ stmts:Statement* EOF {
 
 Statement <- s:LetStmt _ { return s, nil }
           / s:AssignStmt _ { return s, nil }
+          / s:BlockStmt _ { return s, nil }
           / s:ExprStmt _ { return s, nil }
 
 LetStmt <- "let" _ name:Ident _ "=" _ value:Expression _ ";" {
@@ -44,6 +50,13 @@ AssignStmt <- target:Target _ "=" _ value:Expression _ ";" {
     return &ast.AssignStmt{
         Target: target.(ast.Expr),
         Value:  value.(ast.Expr),
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+    }, nil
+}
+
+BlockStmt <- "{" _ stmts:Statement* _ "}" {
+    return &ast.BlockStmt{
+        Statements: coerceStatementList(stmts),
         Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
     }, nil
 }

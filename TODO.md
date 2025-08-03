@@ -1,6 +1,20 @@
-# Grammar Improvement TODOs
+# WSJ TODO List
 
-## High Priority
+## High Priority - MVP Blockers
+
+### Control Flow Statements (Required for mvp_001.wsj)
+- [ ] **If statements**: `if (condition) { ... } else { ... }`
+- [ ] **For loops**: `for (init; condition; update) { ... }`
+- [x] **Block statements**: `{ statement1; statement2; }` - COMPLETED
+- [ ] **Continue statement**: `continue;`
+
+### Template Literals (Deferred - Not Needed This Sprint)
+- [ ] **Template literals**: `` `Error: ${variable}` `` with expression interpolation (removed from mvp_001.wsj)
+
+### Script Issues to Fix
+- [x] **Fix inconsistent index syntax in mvp_001.wsj**: Line 33 uses `[row, col]` but should use `[row][col]`
+
+## High Priority - Completed
 
 - [x] **Remove dead code**: Delete unused rules CallExpr, IndexExpr, MemberExpr (lines 199-228)
 - [x] **Fix unreachable code**: Remove dead return statement on line 261 in null literal case  
