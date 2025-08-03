@@ -2,7 +2,8 @@
 
 ## Overview
 
-The WSJ Interpreter is a tree-walking interpreter designed to execute WSJ programs for Worldographer map automation. It prioritizes simplicity and direct execution over performance optimization.
+The WSJ Interpreter is a tree-walking interpreter designed to execute WSJ programs for Worldographer map automation.
+It prioritizes simplicity and direct execution over performance optimization.
 
 ## Core Architecture
 
@@ -27,9 +28,10 @@ The `globals` map serves as the primary symbol table, storing:
 
 ```go
 // Example after user executes:
-// let a = load("region1.wxx");
-// let b = load("region2.wxx");
+// let a = wxx.Load("region1.wxx");
+// let b = wxx.Load("region2.wxx");
 // let playerName = "Aragorn";
+// let maxLevel = 20;
 globals = map[string]interface{}{
     "a":          *wxx.Map,    // Loaded Worldographer map
     "b":          *wxx.Map,    // Second map for comparison/merging
@@ -139,12 +141,12 @@ Worldographer-specific functions available to WSJ programs:
 
 | Function | Purpose | Example |
 |----------|---------|---------|
-| `load(filename)` | Load .wxx map file | `map = load("dungeon.wxx")` |
-| `save(map, filename)` | Save map to file | `save(map, "updated.wxx")` |
+| `wxx.Load(filename)` | Load .wxx map file | `map = wxx.Load("dungeon.wxx")` |
+| `map.Save(filename)` | Save map to file | `map.Save("updated.wxx")` |
 | `print(...)` | Output to console | `print("Processing hex", x, y)` |
-| `getHex(map, x, y)` | Get hex at coordinates | `hex = getHex(map, 5, 10)` |
-| `setHex(map, x, y, terrain)` | Set hex terrain | `setHex(map, 5, 10, "forest")` |
-| `distance(x1, y1, x2, y2)` | Hex distance | `d = distance(0, 0, 3, 4)` |
+| `map.Hex(x, y)` | Get hex at coordinates | `hex = map.Hex(5, 10)` |
+| `hex.Terrain = terrain` | Set hex terrain | `hex.Terrain = "forest"` |
+| `hexg.Distance(x1, y1, x2, y2)` | Hex distance | `d = hexg.Distance(0, 0, 3, 4)` |
 
 ### Error Handling
 
