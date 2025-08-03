@@ -24,6 +24,7 @@
 
 - [ ] **Make operator precedence consistent**: Update Comparison rule to handle left-associative sequences like Term and Factor
 - [ ] **Standardize position tracking**: Use consistent approach for c.pos vs expression positions
+- [ ] **Improve parser error messages**: Replace cryptic pigeon-generated errors with user-friendly messages (implement after interpreter is complete)
 
 ## Low Priority
 
