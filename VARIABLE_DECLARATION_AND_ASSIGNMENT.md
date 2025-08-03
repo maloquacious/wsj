@@ -89,17 +89,50 @@ Error: Multiple variables may only be declared with a single expression (such as
 
 ---
 
-## 🛠 Grammar Specification (EBNF)
+## 🛠 Grammar Specification (PEG)
 
-```ebnf
-LetStmt ::= "let" LetList ";"
+```peg
+LetStmt <- "let" _ letList:LetList _ ";" {
+    return letList, nil
+}
 
-LetList ::= MultiReturnLet | SingleDeclList
+LetList <- MultiReturnLet / SingleDeclList
 
-MultiReturnLet ::= Identifier ("," Identifier)+ "=" Expression
-SingleDeclList ::= SingleDecl ("," SingleDecl)*
+// Try multi-return first (contains comma before =)
+MultiReturnLet <- first:Ident rest:(_ "," _ Ident)+ _ "=" _ expr:Expression {
+    identifiers := []*ast.Ident{first.(*ast.Ident)}
+    for _, item := range rest.([]interface{}) {
+        pair := item.([]interface{})
+        ident := pair[3].(*ast.Ident) // skip whitespace, comma, whitespace
+        identifiers = append(identifiers, ident)
+    }
+    return &ast.MultiReturnLetStmt{
+        Names: identifiers,
+        Value: expr.(ast.Expr),
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+    }, nil
+}
 
-SingleDecl ::= Identifier "=" Expression
+SingleDeclList <- first:SingleDecl rest:(_ "," _ SingleDecl)* {
+    decls := []*ast.LetStmt{first.(*ast.LetStmt)}
+    for _, item := range rest.([]interface{}) {
+        pair := item.([]interface{})
+        decl := pair[3].(*ast.LetStmt) // skip whitespace, comma, whitespace
+        decls = append(decls, decl)
+    }
+    return &ast.SingleDeclListStmt{
+        Declarations: decls,
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+    }, nil
+}
+
+SingleDecl <- name:Ident _ "=" _ value:Expression {
+    return &ast.LetStmt{
+        Name: name.(*ast.Ident),
+        Value: value.(ast.Expr),
+        Pos: ast.Pos{Line: c.pos.line, Column: c.pos.col},
+    }, nil
+}
 ```
 
 ---
@@ -379,20 +412,9 @@ Error: Variable declarations must include an initializer. Use `let x = value;`.
 
 ---
 
-## 🧩 Grammar Reinforcement (EBNF)
+## 🧩 Grammar Reinforcement (PEG)
 
-```ebnf
-LetStmt ::= "let" LetList ";"
-
-LetList ::= MultiReturnLet | SingleDeclList
-
-MultiReturnLet ::= Identifier ("," Identifier)+ "=" Expression
-SingleDeclList ::= SingleDecl ("," SingleDecl)*
-
-SingleDecl ::= Identifier "=" Expression
-```
-
-This grammar **does not allow** `Identifier` without `= Expression`.
+The PEG grammar shown above **does not allow** `Identifier` without `= Expression`. Both `SingleDecl` and `MultiReturnLet` require an assignment expression, enforcing the "all variables must be initialized" rule.
 
 ---
 
@@ -480,5 +502,78 @@ let x = null;
 ```
 
 This communicates your intent clearly and keeps the language semantics simple and robust.
+
+---
+
+# 🚧 Implementation TODOs (Not This Sprint)
+
+## Status: **DEFERRED** 
+This enhanced `let` statement specification will **not be implemented this sprint**. The following issues must be resolved before implementation can begin.
+
+---
+
+## 🚩 Blocking Issues
+
+### 1. Missing AST Node Types
+The PEG grammar references AST nodes that don't exist in the current codebase:
+- [ ] Add `ast.MultiReturnLetStmt` struct
+- [ ] Add `ast.SingleDeclListStmt` struct  
+- [ ] Update AST interfaces to support new node types
+
+### 2. Undefined Runtime Behavior
+Critical VM implementation details are missing:
+- [ ] Define how multi-return values are represented in VM
+- [ ] Specify what constitutes a "tuple/list of values"
+- [ ] Design function arity tracking mechanism
+- [ ] Define built-in function metadata system
+
+### 3. Incomplete Function System
+Multi-return requires function definition support:
+- [ ] Define function declaration syntax (`fn name() { ... }`)
+- [ ] Implement function arity validation at parse time
+- [ ] Create built-in function registration system
+- [ ] Design function signature metadata storage
+
+### 4. Error Message Standards
+Inconsistent error reporting throughout spec:
+- [ ] Standardize error message format (e.g., `"Error at line X: message"`)
+- [ ] Define error reporting patterns for parser vs runtime
+- [ ] Create comprehensive error code system
+
+### 5. VM Architecture Gaps
+Current VM may not support required features:
+- [ ] Multi-value return mechanism
+- [ ] Runtime arity checking
+- [ ] Function metadata lookup
+- [ ] Tuple/array value handling
+
+---
+
+## 📋 Alternative MVP Approach
+
+**Recommendation**: Implement simple `let x = value` only for MVP:
+
+```js
+// MVP Implementation
+let x = 5;
+let name = "test";
+let a = 1, b = 2;  // Multiple single declarations
+```
+
+**Deferred for v1.1+**:
+```js
+// Post-MVP Features
+let map, err = wxx.Load("file.wxx");  // Multi-return
+```
+
+This allows shipping a working interpreter while deferring the complex multi-return system.
+
+---
+
+## 🎯 Sprint Decision
+
+**Current Sprint**: Focus on basic `let x = value` syntax to unblock interpreter development.
+
+**Future Sprint**: Implement multi-return after VM architecture supports required features.
 
 ---
