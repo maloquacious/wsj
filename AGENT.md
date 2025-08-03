@@ -38,10 +38,12 @@ The syntax for this DSL (domain specific language) is based on a subset of Javas
     └── ... (CI/CD configs, etc.)
 
 ## Commands
-* WSJ runner: `go build -o dist/local/wsj`
 * Generate parser: `pigeon -o parser/grammar.go parser/grammar.peg`
+* WSJ runner: `go build -o dist/local/wsj`
+* Version: `dist/local/wsj --version`
 
 ## Code Style
+- Version information for the project is in `main.go`, in the `version` variable
 - Standard Go formatting using `gofmt`
 - Imports organized by stdlib first, then external packages
 - Error handling: return errors to caller, log.Fatal only in main

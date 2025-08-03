@@ -50,6 +50,15 @@ type BlockStmt struct {
 
 func (s *BlockStmt) Position() Pos { return s.Pos }
 
+type IfStmt struct {
+	Condition Expr
+	ThenStmt  Stmt
+	ElseStmt  Stmt // nil if no else clause
+	Pos       Pos
+}
+
+func (s *IfStmt) Position() Pos { return s.Pos }
+
 type Expr interface {
 	Position() Pos // or any method that lets you identify this as an Expr
 }
