@@ -56,7 +56,7 @@ AssignStmt <- target:PostfixExpr _ "=" _ value:Expression _ ";" {
     }, nil
 }
 
-IfStmt <- "if" _ "(" _ condition:Expression _ ")" _ thenStmt:Statement elseClause:(_ "else" _ elseStmt:Statement)? {
+IfStmt <- "if" _ "(" _ condition:Expression _ ")" _ thenStmt:BlockStmt elseClause:(_ "else" _ elseStmt:(IfStmt / BlockStmt))? {
     var elseStmt ast.Stmt
     if elseClause != nil {
         elseClauseSlice := elseClause.([]interface{})
