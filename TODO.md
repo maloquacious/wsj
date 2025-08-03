@@ -3,7 +3,7 @@
 ## High Priority - MVP Blockers
 
 ### Control Flow Statements (Required for mvp_001.wsj)
-- [ ] **If statements**: `if (condition) { ... } else { ... }`
+- [x] **If statements**: `if (condition) { ... } else { ... }` - COMPLETED
 - [ ] **For loops**: `for (init; condition; update) { ... }`
 - [x] **Block statements**: `{ statement1; statement2; }` - COMPLETED
 - [ ] **Continue statement**: `continue;`
